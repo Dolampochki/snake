@@ -1,0 +1,35 @@
+@import "Styles/variables.scss";
+@import "Styles/mixin.scss";
+
+.snake {
+    display: flex;
+    width: 90vw;
+    height: 90vh;
+    &-rows,
+    &-columns {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        height: 100%;
+        > li {
+            flex-grow: 1;
+        }
+    }
+    &-rows {
+        flex-direction: column;
+    }
+    &-columns {
+        > li {
+            padding: 5px;
+        }
+    }
+    .cell {
+        width: 100%;
+        height: 100%;
+        border: 1px solid $darkGray;
+        &.filled {
+            background-color: $green;
+            border-color: $green;
+        }
+    }
+}

@@ -1,0 +1,16 @@
+@import "Styles/reset.css";
+@import "Styles/variables.scss";
+@import "Styles/mixin.scss";
+
+body {
+    background-color: $black;
+    * {
+        color: #fff;
+    }
+}
+
+.app {
+    width: 100vw;
+    height: 100vh;
+    @include flexCenter;
+}
