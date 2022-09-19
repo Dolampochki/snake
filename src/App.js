@@ -1,11 +1,10 @@
 import './App.scss'
+import SnakeContainer from 'Components/SnakeContainer'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        snake
-      </header>
+    <div className="app">
+        <SnakeContainer />
     </div>
   )
 }
