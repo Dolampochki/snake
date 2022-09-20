@@ -7,12 +7,13 @@ const rows = [...Array(height).keys()]
 const columns = [...Array(width).keys()]
 const directionPairs = [['l', 'r'], ['u', 'd']]
 
-let direction = 'l'
-let food = { x: 0, y: 0 }
 
 export const SnakeContainer = () => {
     const [snake, setSnake] = useState([{ x: 14, y: 14 }])
-
+    const [food, setFood] = useState({ x: 0, y: 0 })
+    const [direction, setDirection] = useState('l')
+    console.log(snake)
+    let interval
     const getNextCoords = {
         l: (coords) => ({ x: coords.x - 1, y: coords.y}),
         r: (coords) => ({ x: coords.x + 1, y: coords.y}),
@@ -31,7 +32,7 @@ export const SnakeContainer = () => {
         return Math.floor(Math.random() * max)
     }
 
-    const showFood = () => {
+    const updateFoodCoords = () => {
         let x, y
         let goodFood = false
         while (!goodFood) {
@@ -39,7 +40,7 @@ export const SnakeContainer = () => {
             y = getRandomCoord(height)
             if (!snake.find(coords => coords.x === x && coords.y === y)) goodFood = true
         }
-        food = { x, y }
+        return { x, y }
     }
 
     const checkEnterBorders = (coords) => {
@@ -47,18 +48,11 @@ export const SnakeContainer = () => {
         return false
     }
 
-    const getNewSnake = (ateFood) => {
-        let newSnake
-        if (ateFood) {
-            newSnake = [getNextCoords[direction](snake[0]), ...snake]
-        } else {
-            newSnake = [...snake]
-            for (let i = 0; i < snake.length; i++) {
-                const { x, y } = getNextCoords[direction](newSnake[i])
-                newSnake[i].x = x
-                newSnake[i].y = y
-            }
-        }
+    const getNewSnake = (prevSnake, ateFood, nextCoords) => {
+        let newSnake = [nextCoords, ...prevSnake]
+        if (!ateFood) {
+            newSnake.pop()
+        } 
         return newSnake
     }
 
@@ -71,39 +65,43 @@ export const SnakeContainer = () => {
         console.log('Game Over')
     }
 
-    const keyPress = (key) => {
+    const keyPress = (prevDirection, key) => {
         const newDirection = keyDirection[key]
-        const currentPair = directionPairs.find(p => p.includes(direction))
-        if (!currentPair.includes(newDirection)) direction = newDirection
+        if (!newDirection) return
+        const currentPair = directionPairs.find(p => p.includes(prevDirection))
+        if (!currentPair.includes(newDirection)) return newDirection
+        return prevDirection
     }
 
-    useEffect(() => {
-        showFood()
-        const interval = setInterval(() => {
+    const updateSnake = () => {
+        interval = setInterval(() => {
             const nextCoords = getNextCoords[direction](snake[0])
             const enterBorders = checkEnterBorders(nextCoords)
-            const ateFood = checkAteFood(snake[0])
-            const newSnake = getNewSnake(ateFood)
+            const ateFood = checkAteFood(nextCoords)
             if (enterBorders) {
                 clearInterval(interval)
                 gameOver()
             } else {
-                setSnake(newSnake)
+                if (ateFood) {
+                    console.log('yammy!')
+                    setFood(updateFoodCoords())
+                }
+                setSnake(prevSnake => getNewSnake(prevSnake, ateFood, nextCoords))
             }
         }, 500)
+    }
 
-        const keyDownHandler = event => {
-            keyPress(event.key)
-        }
-
+    useEffect(() => {
+        setFood(updateFoodCoords())
+        const keyDownHandler = event => setDirection(prevDirection => keyPress(prevDirection, event.key))
         document.addEventListener('keydown', keyDownHandler)
-
-
-        return () => {
-            clearInterval(interval)
-            document.removeEventListener('keydown', keyDownHandler)
-        }
+        return () => document.removeEventListener('keydown', keyDownHandler)
     }, [])
+
+    useEffect(() => {
+        updateSnake()
+        return () => clearInterval(interval)
+    }, [snake])
 
 
     return (
@@ -112,7 +110,7 @@ export const SnakeContainer = () => {
                 {rows.map(row => <li key={row}>
                     <ul className='snake-columns'>
                         {columns.map(column => {
-                            const isSnake = snake.map(i => i.y).includes(row) && snake.map(i => i.x).includes(column)
+                            const isSnake = snake.find(coords => coords.x === column && coords.y === row)
                             const isFood = food.y === row && food.x === column
                             return (<li key={column}>
                                 <div className={`cell ${isSnake ? 'cell-snake' : ''} ${isFood ? 'cell-food' : ''}`}></div>
