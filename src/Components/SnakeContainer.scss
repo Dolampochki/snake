@@ -32,7 +32,8 @@
             border-color: $orange;
         }
         &-snake,
-        &-snake.cell-food {
+        &-snake.cell-food,
+        &-text {
             background-color: $green;
             border-color: $green;
         }
